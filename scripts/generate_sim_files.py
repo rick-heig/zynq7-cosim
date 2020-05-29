@@ -201,7 +201,6 @@ port_map = """
 """
 
 end_architecture = """
-
     --
     m_axi_gp0_aresetn_s <= not rst_s;
     m_axi_gp1_aresetn_s <= not rst_s;
@@ -276,6 +275,7 @@ end_port_map = """
             --__
             --
             rst_o             => rst_s);
+
 """
 
 clock_port_pattern = re.compile("FCLK_CLK[0-3]")
@@ -455,26 +455,32 @@ def generateVHDLFileContents(fileName):
 
     # Set port map
     updated_port_map = port_map
+
+    updated_end_architecture = end_architecture
     
     # TODO : refactor this, this adds connection and generics for all clocks enabled
     if processing_system.has_clock_0:
         updated_port_map += clockConnection(0)
         updated_generics = updated_generics.replace("__FCLK_CLK0_PERIOD_IN_NS__", str(10000))
+        updated_end_architecture = "    FCLK_RESET0_N <= not rst_s;\n" + updated_end_architecture
     else:
         updated_generics = updated_generics.replace("__FCLK_CLK0_PERIOD_IN_NS__", str(-1))
     if processing_system.has_clock_1:
         updated_port_map += clockConnection(1)
         updated_generics = updated_generics.replace("__FCLK_CLK1_PERIOD_IN_NS__", str(10000))
+        updated_end_architecture = "    FCLK_RESET1_N <= not rst_s;\n" + updated_end_architecture
     else:
         updated_generics = updated_generics.replace("__FCLK_CLK1_PERIOD_IN_NS__", str(-1))
     if processing_system.has_clock_2:
         updated_port_map += clockConnection(2)
         updated_generics = updated_generics.replace("__FCLK_CLK2_PERIOD_IN_NS__", str(10000))
+        updated_end_architecture = "    FCLK_RESET2_N <= not rst_s;\n" + updated_end_architecture
     else:
         updated_generics = updated_generics.replace("__FCLK_CLK2_PERIOD_IN_NS__", str(-1))
     if processing_system.has_clock_3:
         updated_port_map += clockConnection(3)
         updated_generics = updated_generics.replace("__FCLK_CLK3_PERIOD_IN_NS__", str(10000))
+        updated_end_architecture = "    FCLK_RESET3_N <= not rst_s;\n" + updated_end_architecture
     else:
         updated_generics = updated_generics.replace("__FCLK_CLK3_PERIOD_IN_NS__", str(-1))
         
@@ -492,7 +498,7 @@ def generateVHDLFileContents(fileName):
     output += extractPorts(fileName)
     output += updated_architecture
     output += updated_port_map
-    output += end_architecture
+    output += updated_end_architecture
         
     return output
     
